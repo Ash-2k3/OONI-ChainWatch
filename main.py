@@ -7,7 +7,3 @@ def load_json(fileName):
            return data
 
 ooni_data = load_json("datasets/1.json")
-
-print('Here is the ooni_data *****************')
-
-print(ooni_data)
