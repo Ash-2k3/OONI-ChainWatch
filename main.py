@@ -18,6 +18,21 @@ url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
 # python-dotenv, bot3, gzip, json, ratelimit
 
+PROCESSED_FILES_FILE = "processed_files.txt"
+directory = "OONI-S3-Datasets/2024"
+
+def is_file_processed(file_path):
+    try:
+        with open(PROCESSED_FILES_FILE, 'r') as f:
+            return file_path in f.read().splitlines()
+    except FileNotFoundError:
+        return False
+
+def mark_file_processed(file_path):
+    """Marks a file as processed."""
+    with open(PROCESSED_FILES_FILE, 'a') as f:
+        f.write(file_path + '\n')
+
 def fetch_measurement_data(file_path):
     try:
         with gzip.open(file_path, 'rb') as f:
@@ -85,30 +100,38 @@ def extract_certificate_chains(measurement_data):
         return []
 
 if __name__ == "__main__":
-    directory = "OONI-S3-Datasets/2024"
     file_count = 0
     for filename in os.listdir(directory):
         if filename.endswith(".jsonl.gz"):
             file_path = os.path.join(directory, filename)
-            measurement_data = fetch_measurement_data(file_path)
+            
+            # Check if the file has been processed
+            if not is_file_processed(file_path):
+                measurement_data = fetch_measurement_data(file_path)
 
-            if measurement_data:
-                # Process measurement data to extract certificate chains
-                certificate_chains = extract_certificate_chains(measurement_data)
+                if measurement_data:
+                    certificate_chains = extract_certificate_chains(measurement_data)
 
-                if certificate_chains:
-                    print(f"Processing {filename}:")  # Indicate which file is being processed
+                    if certificate_chains:
+                        print(f"Processing {filename}:")
 
-                    for chain in certificate_chains:
-                        time.sleep(2)
-                        submit_to_ct(chain)  # Submit each chain
+                        for chain in certificate_chains:
+                            time.sleep(2)
+                            submit_to_ct(chain)
+
+                    else:
+                        print(f"No certificate chains found in {filename}")
 
                 else:
-                    print(f"No certificate chains found in {filename}")
-
-                file_count += 1
-
-                if file_count >= 5:
-                           break  # Early stopping for testing
+                    print(f"Failed to fetch measurement data from {filename}")
             else:
-                print(f"Failed to fetch measurement data from {filename}")  # Log filename
+                print(f"Skipping already processed file: {filename}")
+
+            mark_file_processed(file_path)  # Mark file as processed
+
+            file_count += 1
+
+            if file_count >= 5:
+                       break  # Early stopping for testing
+        else:
+            print(f"Skipping non-JSONL file: {filename}")
