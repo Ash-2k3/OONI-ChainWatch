@@ -6,26 +6,21 @@ import base64
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
+
 # python-dotenv, bot3, gzip, json
 
-def fetch_measurements(test_name="web_connectivity", limit=5):
-    url = f"https://api.ooni.io/api/v1/measurements?test_name={test_name}&limit={limit}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        measurements = response.json()["results"]
-        return measurements
-    else:
-        print(f"Failed to fetch measurements. Status code: {response.status_code}")
-        return []
+def fetch_measurement_data(file_path):
+    try:
+        with gzip.open(file_path, 'rb') as f:
+            for line in f:
+                try:
+                    measurement_data = json.loads(line.decode('utf-8'))
+                    return measurement_data 
+                except json.JSONDecodeError as e:
+                    print(f"Failed to decode line: {e}")
+    except Exception as e:
+        print(f"Failed to read file: {e}")
 
-def fetch_measurement_data(measurement_url): # Raw measurement data
-    response = requests.get(measurement_url)
-    if response.status_code == 200:
-        measurement_data = response.json()
-        return measurement_data
-    else:
-        print(f"Failed to fetch measurement data. Status code: {response.status_code}")
-        return None
 
 def extract_certificate_chains(measurement_data):
     try:
@@ -42,7 +37,6 @@ def extract_certificate_chains(measurement_data):
 
         for tls_handshake in tls_handshakes:
             peer_certificates = tls_handshake.get('peer_certificates', [])  # Extract the certificate chain
-
             # Parse Certificate Chains
             certs = []
             for cert_data in peer_certificates:
@@ -63,22 +57,24 @@ def extract_certificate_chains(measurement_data):
         return []
 
 if __name__ == "__main__":
-    measurements = fetch_measurements()
-    for measurement in measurements:
-        print("Measurement:")
-        print(f"  Input URL: {measurement['input']}")
-        print(f"  Measurement UID: {measurement['measurement_uid']}")
-        print(f"  Measurement Start Time: {measurement['measurement_start_time']}")
-        print(f"  Probe ASN: {measurement['probe_asn']}")
-        print(f"  Probe CC: {measurement['probe_cc']}")
-        print(f"  Measurement URL: {measurement['measurement_url']}")
-        
-        measurement_data = fetch_measurement_data(measurement['measurement_url'])
-        if measurement_data:
-            # Process measurement data to extract certificate chains
-            certificate_chains = extract_certificate_chains(measurement_data)
-            print("Certificate Chains:")
-            print(certificate_chains)
-        else:
-            print("Failed to fetch measurement data.")
-        print()
+    # Directory where JSONL files are stored
+    directory = "OONI-S3-Datasets"
+    
+    # Iterate through JSONL files in the local directory
+    file_count = 0
+    for filename in os.listdir(directory):
+        if filename.endswith(".jsonl.gz"):
+            file_path = os.path.join(directory, filename)
+            measurement_data = fetch_measurement_data(file_path)
+
+            if measurement_data:
+                # Process measurement data to extract certificate chains
+                certificate_chains = extract_certificate_chains(measurement_data)
+                print("Certificate Chains: ")
+                print(certificate_chains)
+                file_count += 1
+
+                if file_count >= 8:
+                           break
+            else:
+                print("Failed to fetch measurement data.")
