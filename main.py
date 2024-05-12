@@ -10,11 +10,13 @@ import binascii
 from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography import x509
 import datetime
+from ratelimit import limits
+import time
 
 
 url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
-# python-dotenv, bot3, gzip, json
+# python-dotenv, bot3, gzip, json, ratelimit
 
 def fetch_measurement_data(file_path):
     try:
@@ -28,6 +30,7 @@ def fetch_measurement_data(file_path):
     except Exception as e:
         print(f"Failed to read file: {e}")
 
+@limits(calls=3, period=10)
 def submit_to_ct(chain):
     chain_data = [cert.public_bytes(serialization.Encoding.DER) for cert in chain]
     payload = {"chain": [base64.b64encode(data).decode() for data in chain_data]}
@@ -97,6 +100,7 @@ if __name__ == "__main__":
                     print(f"Processing {filename}:")  # Indicate which file is being processed
 
                     for chain in certificate_chains:
+                        time.sleep(2)
                         submit_to_ct(chain)  # Submit each chain
 
                 else:
