@@ -14,7 +14,7 @@ url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
 # python-dotenv, bot3, gzip, json, ratelimit
 
-PROCESSED_CHAINS_FILE = "processed_files.txt"
+PROCESSED_CHAINS_FILE = "processed_chains.txt"
 directory = "OONI-S3-Datasets/2024"
 
 

@@ -5,4 +5,4 @@ ooni-env/
 
 *.env
 
-processed_files.txt
+processed_chains.txt
