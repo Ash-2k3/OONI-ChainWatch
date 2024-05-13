@@ -1,0 +1,7 @@
+boto3
+cryptography
+requests
+python-dotenv
+ratelimit
+crontab
+requests
