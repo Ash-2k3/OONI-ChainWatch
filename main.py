@@ -5,30 +5,37 @@ import requests
 import base64
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import serialization, hashes
 from cryptography import x509
-import datetime
 from ratelimit import limits
-import time
 
 url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
 # python-dotenv, bot3, gzip, json, ratelimit
 
-PROCESSED_FILES_FILE = "processed_files.txt"
+PROCESSED_CHAINS_FILE = "processed_files.txt"
 directory = "OONI-S3-Datasets/2024"
 
-def is_file_processed(file_path):
+def is_chain_processed(chain):
     try:
-        with open(PROCESSED_FILES_FILE, 'r') as f:
-            return file_path in f.read().splitlines()
+        chain_hash = hashes.Hash(hashes.SHA256(), backend=default_backend())
+        for cert in chain:
+            chain_hash.update(cert.public_bytes(serialization.Encoding.DER))
+        chain_hash = chain_hash.finalize().hex()
+
+        with open(PROCESSED_CHAINS_FILE, 'r') as f:
+            return chain_hash in f.read().splitlines()
     except FileNotFoundError:
         return False
 
-def mark_file_processed(file_path):
-    """Marks a file as processed."""
-    with open(PROCESSED_FILES_FILE, 'a') as f:
-        f.write(file_path + '\n')
+def mark_chain_processed(chain):
+    chain_hash = hashes.Hash(hashes.SHA256(), backend=default_backend())
+    for cert in chain:
+        chain_hash.update(cert.public_bytes(serialization.Encoding.DER))
+    chain_hash = chain_hash.finalize().hex()
+
+    with open(PROCESSED_CHAINS_FILE, 'a') as f:
+        f.write(chain_hash + '\n')
 
 def fetch_measurement_data(file_path):
     try:
@@ -97,37 +104,25 @@ def extract_certificate_chains(measurement_data):
         return []
 
 if __name__ == "__main__":
-    file_count = 0
     for filename in os.listdir(directory):
         if filename.endswith(".jsonl.gz"):
             file_path = os.path.join(directory, filename)
-            
-            # Check if the file has been processed
-            if not is_file_processed(file_path):
-                measurement_data = fetch_measurement_data(file_path)
-
-                if measurement_data:
-                    certificate_chains = extract_certificate_chains(measurement_data)
-
-                    if certificate_chains:
-                        print(f"Processing {filename}:")
-
-                        for chain in certificate_chains:
-                            time.sleep(3)
-                            submit_to_ct(chain)
+            try:
+                for measurement in fetch_measurement_data(file_path):  # Iterate over each measurement in the file
+                    if measurement:
+                        certificate_chains = extract_certificate_chains(measurement)
+                        if certificate_chains:
+                            for chain in certificate_chains:
+                                if not is_chain_processed(chain):
+                                    submit_to_ct(chain)
+                                    mark_chain_processed(chain)
+                                else:
+                                    print(f"Skipping already submitted chain in {filename}")
+                        else:
+                            print(f"No certificate chains found in {filename}")
                     else:
-                        print(f"No certificate chains found in {filename}")
-
-                else:
-                    print(f"Failed to fetch measurement data from {filename}")
-            else:
-                print(f"Skipping already processed file: {filename}")
-
-            mark_file_processed(file_path)  # Mark file as processed
-
-            file_count += 1
-
-            if file_count >= 5:
-                       break  # Early stopping for testing
+                        print(f"No valid measurement data found in {filename}")
+            except Exception as e:
+                print(f"Error processing file {filename}: {e}")
         else:
             print(f"Skipping non-JSONL file: {filename}")
