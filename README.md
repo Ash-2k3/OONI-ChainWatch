@@ -6,7 +6,7 @@ This Python script extracts certificate chains from OONI web connectivity measur
 
 *   **Efficiently processes OONI web connectivity measurement files** (`.jsonl.gz`) from a local directory.
 *   **Extracts and parses X.509 certificate chains** using the `cryptography` library.
-*   **Submits valid certificate chains** to a configurable CT log (Twig or Willow by default).
+*   **Submits valid certificate chains** to the Twig CT log.
 *   **Implements rate limiting** to avoid overloading the CT log server.
 *   **Maintains persistence** by tracking processed chains to avoid redundant submissions.
 
@@ -60,4 +60,7 @@ The script will process the JSONL files, extract certificate chains, and attempt
 
 I will Open Source it after 17th May 2024.
 
+## More Ideas to Implement!!!
+
+https://github.com/Ash-2k3/OONI-ChainWatch/issues
 
