@@ -56,6 +56,8 @@ This Python script extracts certificate chains from OONI web connectivity measur
 
 The script will process the JSONL files, extract certificate chains, and attempt to submit them to the configured CT log.
 
+![Sample-Script-Run-Screenshot](readme-assets/Sample-Script-Run.png)
+
 ## Contributing
 
 I will Open Source it after 17th May 2024.
