@@ -1,4 +1,4 @@
-# OONI Certificate Transparency Submitter
+# OONI-ChainWatch -- Certificate Transparency Submitter
 
 This Python script extracts certificate chains from OONI web connectivity measurements and submits them to a Let's Encrypt Certificate Transparency (CT) log. This aids in monitoring and auditing the certificates used on the web, contributing to internet transparency efforts.
 
