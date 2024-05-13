@@ -28,7 +28,7 @@ This Python script extracts certificate chains from OONI web connectivity measur
     ```bash
     python3 -m venv ooni-env
     source ooni-env/bin/activate  # On macOS/Linux
-    ooni-env\Scripts\activate  # On Windows
+    ooni-env\Scripts\activate.bat  # On Windows
     ```
 
 3.  **Download Dependencies:**
@@ -36,16 +36,17 @@ This Python script extracts certificate chains from OONI web connectivity measur
     pip install -r requirements.txt
     ```
 
-4.  **Download OONI Data:**
-    *   Download `web_connectivity` measurement files (`.jsonl.gz`) from the OONI S3 bucket (see instructions in the [OONI wiki]([url](https://ooni.org/post/mining-ooni-data))).
-    *   Place the downloaded files in the `OONI-S3-Datasets/2024` directory within the project folder.
+4. **OONI Data:**
+   *   **Local Datasets:** This repository includes a sample set of `web_connectivity` measurement files (`.jsonl.gz`) in the `OONI-S3-Datasets/2024` directory for testing purposes.
+   *   **Additional Data (Optional):** If you want to process more data, you can download additional `web_connectivity` measurement files from the OONI S3 bucket. Follow the instructions in the [OONI wiki]([url](https://ooni.org/post/mining-ooni-data)) for downloading data from the S3 bucket. Place any additional downloaded files in the same `OONI-S3-Datasets/2024` directory.
+
 
 ## Usage
 
 1.  **Activate the virtual environment (if you created one):**
     ```bash
     source ooni-env/bin/activate  # On macOS/Linux
-    ooni-env\Scripts\activate  # On Windows
+    ooni-env\Scripts\activate.bat  # On Windows
     ```
 
 2.  **Run the Script:**
@@ -56,10 +57,6 @@ This Python script extracts certificate chains from OONI web connectivity measur
 The script will process the JSONL files, extract certificate chains, and attempt to submit them to the configured CT log.
 
 ## Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-## License
 
 I will Open Source it after 17th May 2024.
 
