@@ -6,13 +6,10 @@ import base64
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-import binascii
-from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography import x509
 import datetime
 from ratelimit import limits
 import time
-
 
 url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
@@ -116,9 +113,8 @@ if __name__ == "__main__":
                         print(f"Processing {filename}:")
 
                         for chain in certificate_chains:
-                            time.sleep(2)
+                            time.sleep(3)
                             submit_to_ct(chain)
-
                     else:
                         print(f"No certificate chains found in {filename}")
 
