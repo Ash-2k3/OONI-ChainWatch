@@ -18,6 +18,7 @@ PROCESSED_CHAINS_FILE = "processed_files.txt"
 directory = "OONI-S3-Datasets/2024"
 
 def is_chain_processed(chain):
+    """Checks if a certificate chain has already been processed by calculating its SHA256 hash and comparing it to the ones stored in the processed chains file."""
     try:
         chain_hash = hashes.Hash(hashes.SHA256(), backend=default_backend())
         for cert in chain:
@@ -30,6 +31,7 @@ def is_chain_processed(chain):
         return False
 
 def mark_chain_processed(chain):
+    """Marks a certificate chain as processed by calculating its SHA256 hash and storing it in the processed chains file."""
     chain_hash = hashes.Hash(hashes.SHA256(), backend=default_backend())
     for cert in chain:
         chain_hash.update(cert.public_bytes(serialization.Encoding.DER))
@@ -39,6 +41,7 @@ def mark_chain_processed(chain):
         f.write(chain_hash + '\n')
 
 def fetch_measurement_data(file_path):
+    """Reads a gzipped JSONL file containing OONI measurements and yields each measurement as a dictionary."""
     try:
         with gzip.open(file_path, 'rb') as f:
             for line in f:
@@ -52,6 +55,7 @@ def fetch_measurement_data(file_path):
 
 @limits(calls=3, period=10)
 def submit_to_ct(chain):
+    """Submits a certificate chain to the specified CT log with rate limiting."""
     chain_data = [cert.public_bytes(serialization.Encoding.DER) for cert in chain]
     payload = {"chain": [base64.b64encode(data).decode() for data in chain_data]}
 
@@ -71,6 +75,7 @@ def submit_to_ct(chain):
         print(f"Error submitting chain: {err}")
 
 def extract_certificate_chains(measurement_data):
+    """Extracts and parses certificate chains from OONI web connectivity measurement data."""
     try:
         if measurement_data.get("test_name") != "web_connectivity":
             return []
