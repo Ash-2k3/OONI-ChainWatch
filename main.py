@@ -8,6 +8,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography import x509
 from ratelimit import limits
+import time
 
 url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
@@ -114,6 +115,7 @@ if __name__ == "__main__":
                         if certificate_chains:
                             for chain in certificate_chains:
                                 if not is_chain_processed(chain):
+                                    time.sleep(5)
                                     submit_to_ct(chain)
                                     mark_chain_processed(chain)
                                 else:
