@@ -43,7 +43,7 @@ def fetch_measurement_data(file_path):
             for line in f:
                 try:
                     measurement_data = json.loads(line.decode('utf-8'))
-                    return measurement_data 
+                    yield measurement_data 
                 except json.JSONDecodeError as e:
                     print(f"Failed to decode line: {e}")
     except Exception as e:
