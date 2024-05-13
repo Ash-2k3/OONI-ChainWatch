@@ -38,7 +38,7 @@ This Python script extracts certificate chains from OONI web connectivity measur
 
 4. **OONI Data:**
    *   **Local Datasets:** This repository includes a sample set of `web_connectivity` measurement files (`.jsonl.gz`) in the `OONI-S3-Datasets/2024` directory for testing purposes.
-   *   **Additional Data (Optional):** If you want to process more data, you can download additional `web_connectivity` measurement files from the OONI S3 bucket. Follow the instructions in the [OONI wiki]([url](https://ooni.org/post/mining-ooni-data)) for downloading data from the S3 bucket. Place any additional downloaded files in the same `OONI-S3-Datasets/2024` directory.
+   *   **Additional Data (Optional):** If you want to process more data, you can download additional `web_connectivity` measurement files from the OONI S3 bucket. Follow the instructions in the [OONI Wiki](https://ooni.org/post/mining-ooni-data/) for downloading data from the S3 bucket. Place any additional downloaded files in the same `OONI-S3-Datasets/2024` directory.
 
 
 ## Usage
