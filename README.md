@@ -66,3 +66,24 @@ I will Open Source it after 17th May 2024.
 
 https://github.com/Ash-2k3/OONI-ChainWatch/issues
 
+## Deployement Options.
+
+There are several deployment options available, but for this project, I might utilize Docker. Docker provides a convenient environment for containerizing our script, and it also offers me an excellent opportunity to gain hands-on experience with Docker :)
+
+1. Dockerization Process
+Create Dockerfile: We will define the environment for our script in a Dockerfile. This file specifies the base image, dependencies, and commands needed to set up the environment.
+
+2. Build and Push Image: 
+After defining the Dockerfile, we will build the Docker image using the docker build command. Once built, we will push the image to a Docker registry, such as Docker Hub, to make it accessible to our deployment environment.
+
+3. Execution Strategy
+Pull Image on Server: On our deployment server (preferably a Linux machine), we will pull the Docker image from the Docker registry using the docker pull command.
+
+4. Run Container: We will run the Docker image as a container on the server using the docker run command. We may specify a restart policy to ensure that the container restarts automatically in case of failure or system reboot.
+
+5. Periodic Execution
+Use Cron Jobs: To ensure periodic execution of our script, we will utilize cron jobs on the host server. We will set up a cron job that triggers the execution of our Docker container at specified intervals. This approach provides flexibility and allows us to easily manage the scheduling of our script.
+
+6. Avoid Cron Inside Container: While it's possible to implement cron jobs within the Docker container itself, this approach may introduce complexity and dependencies within the container. To keep the container lightweight and focused on its primary task, we opt for using cron jobs on the host server.
+
+By following this deployment strategy, we can effectively containerize our script using Docker, deploy it on our server, and ensure periodic execution with minimal overhead.
