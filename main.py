@@ -9,10 +9,25 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography import x509
 from ratelimit import limits
 import time
+import boto3
+from dotenv import load_dotenv
+import io
+
+load_dotenv()
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+BUCKET_NAME = "ooni-data-eu-fra"
+PREFIX = "raw/20240101/00/CH/webconnectivity"
 
 url = "https://twig.ct.letsencrypt.org/2024h1/ct/v1/add-chain"
 
 # python-dotenv, bot3, gzip, json, ratelimit
+
+s3 = boto3.client('s3',
+                  aws_access_key_id=AWS_ACCESS_KEY_ID,
+                  aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                  region_name='eu-central-1')
 
 PROCESSED_CHAINS_FILE = "processed_chains.txt"
 directory = "OONI-S3-Datasets/2024"
@@ -41,20 +56,6 @@ def mark_chain_processed(chain):
 
     with open(PROCESSED_CHAINS_FILE, "a") as f:
         f.write(chain_hash + "\n")
-
-
-def fetch_measurement_data(file_path):
-    """Reads a gzipped JSONL file containing OONI measurements and yields each measurement as a dictionary."""
-    try:
-        with gzip.open(file_path, "rb") as f:
-            for line in f:
-                try:
-                    measurement_data = json.loads(line.decode("utf-8"))
-                    yield measurement_data
-                except json.JSONDecodeError as e:
-                    print(f"Failed to decode line: {e}")
-    except Exception as e:
-        print(f"Failed to read file: {e}")
 
 
 @limits(calls=3, period=10)
@@ -118,30 +119,30 @@ def extract_certificate_chains(measurement_data):
 
 
 if __name__ == "__main__":
-    for filename in os.listdir(directory):
-        if filename.endswith(".jsonl.gz"):
-            file_path = os.path.join(directory, filename)
-            try:
-                for measurement in fetch_measurement_data(
-                    file_path
-                ):  # Iterate over each measurement in the file
-                    if measurement:
-                        certificate_chains = extract_certificate_chains(measurement)
+    try:
+        # List objects in S3 bucket
+        response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
+        if "Contents" in response:
+            print('         Contents is indeed in response')
+            for obj in response["Contents"]:
+                key = obj["Key"]
+                print(f"Downloading {key}...")
+                # Download object data
+                obj_data = s3.get_object(Bucket=BUCKET_NAME, Key=key)
+                body = obj_data["Body"].read()
+                # Parse gzip data
+                with gzip.GzipFile(fileobj=io.BytesIO(body), mode="rb") as f:
+                    for line in f:
+                        measurement_data = json.loads(line.decode("utf-8"))
+                        certificate_chains = extract_certificate_chains(measurement_data)
                         if certificate_chains:
                             for chain in certificate_chains:
                                 if not is_chain_processed(chain):
                                     time.sleep(5)
                                     submit_to_ct(chain)
                                     mark_chain_processed(chain)
-                                else:
-                                    print(
-                                        f"Skipping already submitted chain in {filename}"
-                                    )
-                        else:
-                            print(f"No certificate chains found in {filename}")
-                    else:
-                        print(f"No valid measurement data found in {filename}")
-            except Exception as e:
-                print(f"Error processing file {filename}: {e}")
+                print(f"Finished processing {key}")
         else:
-            print(f"Skipping non-JSONL file: {filename}")
+            print("No objects found in the specified prefix.")
+    except Exception as e:
+        print(f"Error: {e}")
