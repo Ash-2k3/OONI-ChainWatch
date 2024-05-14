@@ -58,6 +58,10 @@ The script will process the JSONL files, extract certificate chains, and attempt
 
 ![Sample-Script-Run-Screenshot](readme-assets/Sample-Script-Run.png)
 
+## Alternative Approach: Fetching Data from S3 Bucket
+
+If you prefer fetching measurement data directly from the OONI S3 bucket instead of using locally downloaded datasets, you can switch to the `fetch-from-S3-bucket` branch. This approach eliminates the need to download datasets manually and allows the script to fetch webconnectivity measurement files directly from the S3 bucket. However, please note that the current implementation statically mentions the `PREFIX` variable (`raw/20240101/00/CH/webconnectivity`). You may need to modify this variable to match your requirements.
+
 ## Contributing
 
 I will Open Source it after 17th May 2024.
